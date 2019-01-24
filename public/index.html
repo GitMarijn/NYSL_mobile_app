@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="apple-touch-icon" href="Images/nysl_logo.png">
+    <link rel="icon" href="Images/nysl_logo.png">
+    <link rel="apple-touch-startup-image" href="Images/nysl_logo.png">
+    <title>NYSL</title>
+</head>
+
+<body>
+    <div id="app">
+        <div id="mySidenav" class="sidenav">
+            <a href="javascript:void(0)" class="closebtn" @click="closeNav()">&times;</a>
+            <img class="logosidebar" src="Images/nysl_logo.png" @click="setPageView(0), closeNav()">
+
+            <a @click="setPageView(0), closeNav()">
+                <div class="fa fa-home sidenavicon"></div>
+                Home
+            </a>
+
+            <a @click="setPageView(1), closeNav()">
+                <div class="fa fa-calendar sidenavicon"></div>
+                Game schedule
+            </a>
+            <a @click="setPageView(3), isLoggedIn(), closeNav()">
+                <div class="fa fa-comments-o sidenavicon"></div>
+                Chat
+            </a>
+            <a @click="setPageView(4), closeNav()">
+                <div class="fa fa-map-marker sidenavicon"></div>
+                Locations
+            </a>
+            <a class="logoutbutton" @click="logOut(), closeNav()">
+                <div class="fa fa-sign-out sidenavicon"></div>Log Out
+            </a>
+        </div>
+
+        <div v-if="currentView == 0">
+
+            <header id="header">
+                <span class="hamburgermenu" @click="openNav()">&#9776;</span>
+                <span class="title">NYSL Home</span>
+                <img class="logo" src="Images/nysl_logo.png">
+            </header>
+
+            <div class="homewrapper">
+                <div class="homecontainer1" @click="setPageView(1)">
+                    <span class="fa fa-calendar homeicon"></span>
+                    <span class="hometext">Game schedule</span>
+                </div>
+
+                <div class="homecontainer" @click="setPageView(3), isLoggedIn()">
+                    <div class="fa fa-comments-o homeicon"></div>
+                    <span class="hometext">Chat</span>
+                </div>
+
+                <div class="homecontainer" @click="setPageView(4)">
+                    <div class="fa fa-map-marker homeicon"></div>
+                    <span class="hometext">Locations</span>
+                </div>
+            </div>
+        </div>
+
+        <div v-if="currentView == 1">
+
+            <header id="header">
+                <span class="hamburgermenu" @click="openNav()">&#9776;</span>
+                <span class="fa fa-angle-left" @click="setPageView(0)"></span>
+                <span class="title" @click="setPageView(0)">Game schedule</span>
+                <img class="logo" src="Images/nysl_logo.png">
+            </header>
+
+            <div class="landscapecontainer">
+                <div class="landscapeleft">
+                    <div class="subheader">
+                        <span class="title">Next up:</span>
+                    </div>
+
+                    <div class="cardwrapper">
+                        <div v-for="game in games.slice(0, 3)" class="card cardnextup">
+                            <span class="nextupgame">{{game.hometeam}} - {{game.visitors}}</span>
+                            <div class="nextupwrapper">
+                                <span class="teamlogocontainer" v-for="team in teams" v-if="game.hometeam == team.name">
+                                    <img class="teamlogocard" :src="team.logo">
+                                </span>
+
+                                <div class="nextupinfo">
+                                    <span>Date: {{game.date}}</span>
+                                    <span>Time: {{game.time}}</span>
+                                    <span>Location: {{game.location}}</span>
+                                </div>
+
+                                <span class="teamlogocontainer" v-for="team in teams" v-if="game.visitors == team.name">
+                                    <img class="teamlogocard" :src="team.logo">
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="landscaperight">
+                    <div class="subheader">
+                        <span class="title">Teams</span>
+                    </div>
+
+                    <div class="teamwrapper">
+                        <div class="teamheader" v-for="team in teams" @click="filterTeams(team); currentView = 2;">
+                            <div class="teamlogowrapper">
+                                <img class="teamlogo" :src="team.logo">
+                            </div>
+                            <span class="teamtitle">{{team.name}}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div v-if="currentView == 2">
+
+            <header id="header">
+                <span class="hamburgermenu" @click="openNav()">&#9776;</span>
+                <span class="fa fa-angle-left" @click="setPageView(1)"></span>
+                <span class="title" @click="setPageView(1)">Game schedule</span>
+            </header>
+
+            <div class="subheaderschedule">
+                <img class="selectedteamlogo" :src="selectedTeam.logo">
+                <span>{{selectedTeam.name}}</span>
+            </div>
+
+            <div v-for="game in selectedGamesOfATeam" class="card cardteamschedule">
+                <span class="gametitle">{{game.hometeam}} - {{game.visitors}}</span>
+                <div class="nextupwrapper">
+                    <span class="teamlogocontainer" v-for="team in teams" v-if="game.hometeam == team.name">
+                        <img class="teamlogoteamschedule" :src="team.logo">
+                    </span>
+
+                    <div class="nextupinfo">
+                        <span class="gameinfoheader">Date:</span>
+                        <span class="gameinfocontent">{{game.date}}</span>
+                        <span class="gameinfoheader">Time:</span>
+                        <span class="gameinfocontent">{{game.time}}</span>
+                        <span class="gameinfoheader">Location:</span>
+                        <span class="gameinfocontent" @click="setPageView(4)">{{game.location}}</span>
+                    </div>
+
+                    <span class="teamlogocontainer" v-for="team in teams" v-if="game.visitors == team.name">
+                        <img class="teamlogoteamschedule" :src="team.logo">
+                    </span>
+                </div>
+            </div>
+
+        </div>
+
+        <div v-if="currentView == 3">
+
+            <header id="header">
+                <span class="hamburgermenu" @click="openNav()">&#9776;</span>
+                <span class="fa fa-angle-left" @click="setPageView(0)"></span>
+                <span class="title" @click="setPageView(0)">Chat</span>
+                <img v-for="photo in userPhoto" v-if="isLogged == true" class="photologo" :src="userPhoto">
+                <img v-if="isLogged == false" class="logo" src="Images/nysl_logo.png">
+            </header>
+
+            <div class="chatlogincontainer" v-if="isLogged == false">
+                <span class="chatloginbanner">Please log in to use chat.</span>
+                <button id="submitbutton" class="fa fa-sign-in signinbutton" @click="login()"></button>
+                <label class="signinlabel" for="submitbutton">Log in with Google</label>
+            </div>
+
+            <div class="box" v-if="isLogged == true">
+
+               
+               <div v-for="post in chat">
+                <div v-if="post.name != currentUser">
+                    <div class="container">
+                        <span><img :src="post.picture" class="left"></span>
+                        <span class="time">{{post.hour}}:{{post.minute}}</span>
+                        <span class="mynameleft">{{post.name}}:</span>
+                        <span class="chatbodyleft">{{post.body}}</span>
+                    </div>
+                </div>
+                
+                <div v-if="post.name == currentUser">
+                    <div class="container darker">
+                        <span class="time">{{post.hour}}:{{post.minute}}</span>
+                        <span>{{post.body}}</span>
+                    </div>
+                </div>
+                </div>
+
+                <div class="chatinput">
+                    <input id="textInput" class="input" type="text" placeholder="Your message..." @keyup.enter="writeNewPost(), getPosts(), emptyTextInput()">
+                    <button class="msg_send_btn" type="text" @click="writeNewPost(), getPosts(), emptyTextInput()"><i class="fa fa-paper-plane-o" aria-hidden="true"></i></button>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div v-if="currentView == 4">
+
+            <header id="header">
+                <span class="hamburgermenu" @click="openNav()">&#9776;</span>
+                <span class="fa fa-angle-left" @click="setPageView(0)"></span>
+                <span class="title" @click="setPageView(0)">Locations</span>
+                <img class="logo" src="Images/nysl_logo.png">
+            </header>
+
+            <div class="locationwrapper">
+                <div class="locationcontainer" v-for="location in locations">
+                    <div class="locationleft">
+                        <span class="locationname">{{location.name}}</span>
+                        <span class="locationaddress">{{location.address}}</span>
+                    </div>
+
+                    <div class="locationright">
+                        <iframe :src="location.iframe"> </iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+
+
+    <script src="https://www.gstatic.com/firebasejs/5.7.3/firebase.js"></script>
+    <script>
+        // Initialize Firebase
+        var config = {
+            apiKey: "AIzaSyD1sKB13e0fNX5cA70XBtD6aCkpKc1NZeE",
+            authDomain: "nysl-mobile-app-6a193.firebaseapp.com",
+            databaseURL: "https://nysl-mobile-app-6a193.firebaseio.com",
+            projectId: "nysl-mobile-app-6a193",
+            storageBucket: "nysl-mobile-app-6a193.appspot.com",
+            messagingSenderId: "1039260827450"
+        };
+        firebase.initializeApp(config);
+
+    </script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/vue/dist/vue.js"></script>
+    <script src="main.js"></script>
+</body>
+
+</html>
